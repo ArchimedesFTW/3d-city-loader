@@ -1,0 +1,8 @@
+git.sh
+/.vscode
+
+# Added by cargo
+
+/target
+
+/geocache/*.json

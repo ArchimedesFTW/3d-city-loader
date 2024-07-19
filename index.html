@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D city Visualizor</title>
+</head>
+<body>
+    <script type="module">
+        import init from './pkg/city_visualizer.js';
+        init();
+    
+        const gameContainer = document.getElementById('gameContainer');
+    
+        // Ensure the game container is focusable
+        gameContainer.setAttribute('tabindex', '0');
+    
+        // Lock the pointer on click --> Conflcts with the escape to set the city
+        gameContainer.addEventListener('click', () => {
+            console.log("Game container clicked");
+            // Focus the game container to ensure keyboard events are captured
+            gameContainer.focus();
+    
+            // Request pointer lock
+            gameContainer.requestPointerLock();
+        });
+    </script>
+    <p>If the mouse leaves the game window. Press escape twice and click on the window to lock the mouse.</p>
+</body>
+</html>
