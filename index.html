@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D city Visualizor</title>
+
+<link rel="modulepreload" href="/city_visualizer-c450a16dc60d7871.js" crossorigin=anonymous integrity="sha384-OgvdxnPyx7vXFRWns02r5lxIWHjD9t4xZb4X+IPldos+V1ZO6Dyf5/uABUvchmMW">
+<link rel="preload" href="/city_visualizer-c450a16dc60d7871_bg.wasm" crossorigin=anonymous integrity="sha384-TFxzhyiVH9v9DrAL93evHwiJeZlVPCefnOjA5t9W+EtOHUEktqzuI38x48scMUOw" as="fetch" type="application/wasm"></head>
+<body>
+    <script type="module">
+        import init from './pkg/city_visualizer.js';
+        init();
+    
+        const gameContainer = document.getElementById('gameContainer');
+    
+        // Ensure the game container is focusable
+        gameContainer.setAttribute('tabindex', '0');
+    
+        // Lock the pointer on click --> Conflcts with the escape to set the city
+        gameContainer.addEventListener('click', () => {
+            console.log("Game container clicked");
+            // Focus the game container to ensure keyboard events are captured
+            gameContainer.focus();
+    
+            // Request pointer lock
+            gameContainer.requestPointerLock();
+        });
+    </script>
+    <p>If the mouse leaves the game window. Press escape twice and click on the window to lock the mouse.</p>
+
+<script type="module" nonce="IeCaOOQnnTmGAAIYwQ307g==">
+import init, * as bindings from '/city_visualizer-c450a16dc60d7871.js';
+const wasm = await init('/city_visualizer-c450a16dc60d7871_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+</html>
