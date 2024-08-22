@@ -1,8 +1,6 @@
 git.sh
 /.vscode
-
-# Added by cargo
-
+/dist/*
 /target
 
 /geocache/*.json

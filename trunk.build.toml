@@ -1,0 +1,6 @@
+[build]
+public_url = "/3d-city-loader/"
+release = true
+
+[copy]
+assets = "assets"

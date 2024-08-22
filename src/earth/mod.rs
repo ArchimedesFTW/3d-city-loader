@@ -71,7 +71,7 @@ pub fn setup_earth(
         .insert(GeoFeature { id: 0 });
 }
 
-const BASE_PLANE_SIZE: f32 = 10.0 * GLOBAL_SCALE_FACTOR;
+const BASE_PLANE_SIZE: f32 = 5.0 * GLOBAL_SCALE_FACTOR;
 
 /// An event that adds new geographic data to the world.
 #[derive(Debug, Event)]

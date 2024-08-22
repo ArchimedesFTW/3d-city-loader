@@ -1,9 +1,58 @@
 
+
+![3D City Loader](./pictures/preview.png)
+
 # 3D City Loader
 
-Joint project with @DukeBas and @w2ptr .
+Joint project with [@DukeBas](https://github.com/DukeBas) and [@w2ptr](https://github.com/w2ptr).
 
-## Controls
+In this project, we created a 3D city loader that can load cities from the OpenStreetMap database and display them in a 3D environment. The project is written in Rust and uses the Bevy game engine for rendering. It can be run as a native application or as a web application.
+
+## Demo
+[You can play around with our tool here](https://archimedesftw.github.io/3d-city-loader/)
+
+
+![3D City Loader](./pictures/demo-preview.png)
+*A picture of a part of Nijmegen. Generated using the web version of our tool.*
+
+
+### Web Controls
+On the web version, the controls are the same as the native version:
+- W, A, S, D for moving forward, left, backward, right respectively;
+- The `Spacebar` and `Shift` keys are used for moving the camera up and down respectively.
+- The mouse is used for rotating the camera.
+- Press `Tab` to enter the city name, and `Enter` to load the city.	
+Click on the game again, to prevent typing in the city name.
+
+_Note: The city name is case-sensitive. (e.g "Netersel" or "Berlin")._
+### Troubleshooting
+
+- **When loading a city, it seems to do nothing**
+  - *Solution*: The game is working, but it takes a while to load the city using the free Overpass API; The UI will confirm once it's fully loaded.
+
+- **The mouse does not work well (e.g. the mouse leaving the game window)**
+  - *Solution*: Press `Esc` **twice**, then click on the game again.
+
+- **File selection and API doesn't work**
+  - *Solution*: This feature is only available on the native version.
+
+- **I want more performance**
+  - *Solution*: Use the native version.
+
+
+
+
+## Building/Running the Project
+
+First of all, [install `cargo`](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+
+Then run the `release` (fastest) version of the project with:
+
+```sh
+cargo run --release
+```
+
+### Controls (Native version)
 
 Running the pre-built executable will open a window that has two parts:
 
@@ -36,40 +85,33 @@ panel with the mouse. The following controls can be used:
 
 - Escape for transferring the focus back to the user interface (the earth loader panel).
 
-## Building/Running the Project
+## Running web version
+> **Warning:** The web version of this project will run slower compared to the native version. This is due to the limitations of running in a web environment.
 
-First of all, [install `cargo`](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+To run the web version, you first need to build the project. This can be done with the following command:
 
-Then run the `release` (fastest) version of the project with:
-
-```sh
-cargo run --release
+```sh	
+trunk build
 ```
 
-## Running on WebAssembly
-
-Note that this does not seem to work on windows! Consider using WSL in that case.
-
-To set up, install the target and the bindgen tool as follows:
+Then, you can serve the project with the following command:
 
 ```sh
-rustup target install wasm32-unknown-unknown
-cargo install wasm-server-runner # optional, for running on local server only
-cargo install wasm-bindgen-cli
+trunk serve
 ```
 
-Build the executable as follows:
+### Hosting the project 
+
+
+You can also host the project with any static file server, like `http-server`:
 
 ```sh
-cargo build --target wasm32-unknown-unknown --release
+http-server -p 8080 ./dist
 ```
-
-Generate a folder for embedding in a web page as follows:
+or with `python`:
 
 ```sh
-wasm-bindgen --no-typescript --target web --out-dir ./out/ --out-name "city_visualizer" ./target/wasm32-unknown-unknown/release/city_visualizer.wasm
+python3 -m http.server 8080 --directory ./dist
 ```
 
-Then copy the `assets` folder in its entirety to that `out` folder. The `out` folder can then be served on a web
-server. Note that the performance is quite bad as WebAssembly does not have support for multithreading and is
-generally going to be slower.
+

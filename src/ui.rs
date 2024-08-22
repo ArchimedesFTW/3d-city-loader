@@ -3,7 +3,6 @@ use crate::data::loading::DataQueryEvent;
 use crate::data::query::{parse_data_query, InputQueryType};
 use crate::player::PlayerMoveEvent;
 use wasm_bindgen::prelude::*;
-
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 use bevy::text::BreakLineOn;
@@ -13,6 +12,11 @@ use bevy_egui::egui;
 use bevy_egui::EguiContexts;
 
 use std::collections::vec_deque::VecDeque;
+
+#[wasm_bindgen]
+extern {
+    fn setup_finished();
+}
 
 /// The state of the UI, such as values for input fields, excluding the main
 /// earth panel.
@@ -68,6 +72,9 @@ pub fn setup_ui(mut commands: Commands, mut windows: Query<&mut Window, With<Pri
             ..default()
         },
     ));
+
+    // Communicate with the JavaScript that the setup is finished
+    setup_finished();
 }
 
 /// A system that updates the UI for the next frame.
@@ -113,8 +120,24 @@ pub fn update_ui(
                 );
             });
 
-        ui.text_edit_multiline(&mut ui_state.query);
-        if ui.button("LOAD").clicked() {
+        // Add the multiline text element and capture the response
+        let response = ui.add(egui::TextEdit::multiline(&mut ui_state.query)
+            .hint_text("Press TAB to enter city..."));
+
+        // Set focus to the text edit if the user presses tab
+        if ui.input(|i| i.key_pressed(egui::Key::Tab)) {
+            response.request_focus();
+
+            // Clear previous text
+            ui_state.query.clear();
+        }
+
+        // If the user presses enter while the text edit is focused, load the data
+        let submit_using_enter: bool = keyboard_input.just_pressed(KeyCode::Enter) && response.has_focus();
+        if ui.button("LOAD - press ENTER").clicked() || submit_using_enter {
+            // Remove \n (newline) characters from the query
+            ui_state.query = ui_state.query.replace("\n", "");
+
             match parse_data_query(ui_state.query_type, &ui_state.query) {
                 Ok(query) => {
                     status_events.send(StatusEvent::Update(
