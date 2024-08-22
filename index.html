@@ -4,34 +4,228 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D City Visualizer</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #121212;
+            font-family: Arial, sans-serif;
+        }
+        #gameContainer.normal {
+            display: block;
+            width: 90% !important;
+            height: 80vh !important;
+            margin: auto !important;
+            margin-top: 7.5vh !important;
+            min-width: 180px;
+            min-height: 120px;
+            outline: none; /* Hide focus color */
+        }
 
-<link rel="modulepreload" href="./city_visualizer-c450a16dc60d7871.js" crossorigin=anonymous integrity="sha384-OgvdxnPyx7vXFRWns02r5lxIWHjD9t4xZb4X+IPldos+V1ZO6Dyf5/uABUvchmMW">
-<link rel="preload" href="./city_visualizer-c450a16dc60d7871_bg.wasm" crossorigin=anonymous integrity="sha384-TFxzhyiVH9v9DrAL93evHwiJeZlVPCefnOjA5t9W+EtOHUEktqzuI38x48scMUOw" as="fetch" type="application/wasm"></head>
+        #gameContainer.fullscreen {
+            display: block;
+            width: 100% !important;
+            height: 100vh !important;
+            margin: 0;
+            z-index: 10;
+        }
+        #loading {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            background-color: #2b2c2f;
+            color: white;
+            font-size: 24px;
+            z-index: 999;
+        }
+        .header {
+            position: absolute;
+            top: 0.5vh;
+            left: 5%;
+            display: flex;
+            align-items: center;
+            width: 90%;
+            justify-content: space-between;
+        }
+
+        .footer {
+            width: 100%;
+            height: 5vh;
+            top: 87.5vh;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding:0.5vh 0;
+        }
+    
+        .title {
+            color: white;
+            font-size: 3.5vh; /* Font size scaled using viewport height */
+        }
+    
+        .button {
+            height: 3.6vh;
+            cursor: pointer;
+            background-color: #2773e3; 
+            color: white; 
+            border: none; 
+            border-radius: 0.75vh; 
+            font-size: 1.75vh;
+            padding: 0.5vh 1vh;
+            margin-right: 0.3%;
+        }
+
+        .button.primary {
+            background-color: #2773e3;
+            color: white;
+        }
+        
+        .button.secondary {
+            background-color: #555;
+            color: white;
+        }
+    
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        .button.secondary:hover {
+            background-color: #777;
+        }
+
+        .disclaimer {
+            position: absolute;
+            top: 87.5vh;
+            right: 5%;
+            color: #FFA500; 
+            font-size: 1.5vh;
+            margin-top: 1vh;
+            display: block;
+            text-align: right; 
+        }
+
+        .disclaimer a {
+            color: #2773e3;
+            text-decoration: underline;
+        }
+    </style>
+
+<link rel="modulepreload" href="./city_visualizer-5a01a39a8f5ba18f.js" crossorigin=anonymous integrity="sha384-cAg7w2pDKriVtyajf1zgtLSX3mwKGmTNPK+C4Pp+kG6vTrMUiQxEN1czWwK5l4Le">
+<link rel="preload" href="./city_visualizer-5a01a39a8f5ba18f_bg.wasm" crossorigin=anonymous integrity="sha384-gPHJm4QtOnzOh7YB65hZ+Z3nvUZQuCiSSLCbVl3+QlnoFngfpO7s69tIISv2G5CX" as="fetch" type="application/wasm"></head>
 <body>
+    <div id="loading">Loading...</div>
+    <div class="header">
+        <h1 class="title">Earth Simulator</h1>
+    </div>
+
+    <footer class="footer">
+        <button class="button secondary" onclick="about()">About</button>
+        <button class="button secondary" onclick="controls()">Controls</button>
+        <button class="button secondary" onclick="help()">Help</button>
+        <button id="fullscreenButton" class="button primary">Fullscreen</button>
+    </footer>
+
+    <span class="disclaimer">
+        This is a web port and has lower performance<br>
+        <a href="https://github.com/ArchimedesFTW/3d-city-loader/releases">Download the native app</a>
+    </span>
+
+    <script>
+        function about() {
+            window.open('https://github.com/ArchimedesFTW/3d-city-loader?tab=readme-ov-file#3d-city-loader', '_blank');
+        }
+
+        function controls() {
+            window.open('https://github.com/ArchimedesFTW/3d-city-loader?tab=readme-ov-file#web-controls', '_blank'); 
+        }
+
+        function help() {
+            window.open('https://github.com/ArchimedesFTW/3d-city-loader?tab=readme-ov-file#troubleshooting', '_blank');
+        }
+    </script>
+
     <script type="module">
-        import init from './pkg/city_visualizer.js';
-        init();
     
-        const gameContainer = document.getElementById('gameContainer');
-    
-        // Ensure the game container is focusable
-        gameContainer.setAttribute('tabindex', '0');
-    
-        // Lock the pointer on click --> Conflcts with the escape to set the city
-        gameContainer.addEventListener('click', () => {
-            console.log("Game container clicked");
+        // Rust calls this function once the setup is finished
+        window.setup_finished = function() {
+            const loading = document.getElementById('loading');
+
+            // Hide the loading screen and show the game container
+            loading.style.display = 'none';
+
+            // Find the game (the only canvas element)
+            const gameContainer = document.querySelector('canvas');
+
+            // Set id for easier access
+            gameContainer.id = 'gameContainer';
+
+            // Remove element style
+            gameContainer.style = '';
+
+            // Set the game container to be centered and in 90% fullscreen
+            gameContainer.classList.add('normal');           
+
             // Focus the game container to ensure keyboard events are captured
             gameContainer.focus();
-    
-            // Request pointer lock
-            gameContainer.requestPointerLock();
-        });
-    </script>
-    <p>If the mouse leaves the game window. Press escape twice and click on the window to lock the mouse.</p>
 
-<script type="module" nonce="mtWsBOM+KewYaOd8+UtFtw==">
-import init, * as bindings from './city_visualizer-c450a16dc60d7871.js';
-const wasm = await init('./city_visualizer-c450a16dc60d7871_bg.wasm');
+            // Lock the pointer on click
+            gameContainer.addEventListener('click', () => {
+                gameContainer.focus();
+                gameContainer.requestPointerLock();
+            });
+
+            // Fullscreen button functionality
+            const fullscreenButton = document.getElementById('fullscreenButton');
+            fullscreenButton.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+
+            // Hide the fullscreen button if fullscreen is not supported
+            if (!document.fullscreenEnabled) {
+                fullscreenButton.style.display = 'none';
+            }
+
+            // Hide all buttons when in fullscreen
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    fullscreenButton.style.display = 'none';
+
+                    // Change style to fullscreen
+                    gameContainer.classList.remove('normal');
+                    gameContainer.classList.add('fullscreen');
+
+                    // Focus on the game container to ensure keyboard events are captured
+                    gameContainer.focus();
+                } else {
+                    fullscreenButton.style.display = 'block';
+
+                    // Change style to normal size
+                    gameContainer.classList.remove('fullscreen');
+                    gameContainer.classList.add('normal');
+                }
+            });
+        };
+    
+    </script>
+
+<script type="module" nonce="7pEY+iDMPOSvVrdE0fdM4g==">
+import init, * as bindings from './city_visualizer-5a01a39a8f5ba18f.js';
+const wasm = await init('./city_visualizer-5a01a39a8f5ba18f_bg.wasm');
 
 
 window.wasmBindings = bindings;
